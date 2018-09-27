@@ -1,0 +1,144 @@
+Rice Python Class - Guess The Number
+
+http://www.codeskulptor.org/#user21_o5UMENyQITaF1we.py
+
+Template for "Guess the number" mini-project.
+#
+# Input will come from buttons and an input field.
+# All output for the game will be printed on the console
+# until we learn how to use the canvas in upcoming classes.
+#
+# R. Buning
+
+#
+# Import vital Python libraries for this program.
+#
+
+import simplegui
+import random
+import math
+import sys
+
+#
+# Initialize global variables used in the game code
+#
+number_range = 100	# Variable for value of number range to guess from, start with 100
+guesses = 0		    # Number of guesses player has left. Can they do it in 7 guesses?
+crypto_number = 0   # The dreaded secret number the player must guess
+
+#
+# Define the event handlers for SimpleGUI control panel
+#
+
+def letsplay():
+    #
+    # This function initializes the game and allows the super secret number and guesses to 
+    # be shared among the functions in the game.
+    
+    global crypto_number
+    global guesses
+    
+    # Sets crypto_number to a value between 0 and upper limit of number range (100 or 1000)
+    # Depending upon button push.
+    
+    crypto_number = random.randrange(0, number_range)
+    
+    
+    # Sets the number of guesses, based on the number range and checks for valid value.
+    if number_range == 100 : 	
+        guesses = 7
+    elif number_range == 1000 :
+        guesses = 10
+        print ' '    # Print a blank line.
+        print 'You really like a challenge!'
+    else :
+        print 'Selected Number Is Out Of Range'
+        
+    print 'Starting new game. Range is from 0 to ' + str(number_range)
+    print 'Number of remaining guesses is ' + str(guesses) + '\n'
+    print 'Good luck!!!'
+    
+def range100():
+    #
+    # Click button that changes range to range from zero to 100 and restarts the game
+    #
+    global number_range
+    number_range = 100
+    letsplay()
+    
+def range1000():
+    #
+    # Click button that changes range to range from zero to 1000 and restarts the game
+    #
+    global number_range
+    number_range = 1000
+    letsplay()
+    
+def get_input(guess):
+    #
+    # Main game logic goes here	
+    #
+    global guesses
+    
+    print 'Guess was ' + guess
+    #
+    # Number check goes here. Not implemented.
+    #
+    if is_number(guess) == False:
+        print ' Input value was invalid... Waiting for input'
+        letsplay()
+    else:
+        pass
+    guesses -= 1	# Decrement Guesses
+    print 'Number of remaining guesses is ' + str(guesses)
+    
+    if guesses <= 0 and int(guess) != crypto_number :	# If user did not guess correctly within allowed number of guesses
+        print 'You ran out of guesses. The number was ' + str(number) + "\n"
+        letsplay()
+    else :
+        if int(guess) == crypto_number :   # If the player guesses the correct number
+            print 'Correct!\n'		       # print 'Correct!'
+            letsplay()				       # and call letsplay() to reset the game
+        elif int(guess) < crypto_number :  # Else if the guess is higher than the number
+            print 'Higher!\n'		       # print 'Higher'
+        else :						       # Else the number has to be lower
+            print 'Lower!\n'		       # so print 'Lower'
+            
+def is_number(guess):
+    #
+    # Checking if input string can be converted to a number
+    #
+    try:
+        float(guess)
+        return True
+    except ValueError:
+        return False      
+            
+def quit():
+    #
+    # Providing a graceful way out of the program.
+    #
+    print "Thank you for playing..."
+    raise SystemExit
+
+#   
+# Define and create the main game frame without canvas from SimpleGUI
+#
+mainframe = simplegui.create_frame("Guess the number", 200, 200)
+
+#
+# Register the three(3) event handlers for control elements of program.
+#
+mainframe.add_button("Range is [0, 100]", range100, 200)	# Create button for changing the range to 100
+mainframe.add_button("Range is [0, 1000]", range1000, 200)	# Create button for changing the range to 1000
+mainframe.add_button("Quit Game", quit, 200)                # Create button for graceful quit.
+mainframe.add_input("Enter your guess", get_input, 200)		# Create button to accept player number input
+#
+#
+# Time to get the game started.
+letsplay()
+
+#
+# Start frame drawing function before game can execute.
+#
+mainframe.start()
