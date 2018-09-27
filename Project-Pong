@@ -1,0 +1,209 @@
+Rice Python Class - Pong
+
+http://www.codeskulptor.org/#user23_vXwwIGJ7voeg8EL.py
+
+# Implementation of classic Atari arcade game "Pong"
+# Ron Buning - Interactive Python - Rice University
+#
+
+#
+# Import required Python external modules
+#
+
+import simplegui
+import random
+
+# Initialize All Global Variables Used Throughout Game
+
+#
+## SimpleGUI Frame Dimensions
+# 
+WIDTH = 600 
+HEIGHT = 400
+
+#
+## Pong Ball Definition (Good Size!)
+#
+BALL_RADIUS = 20
+ball_pos = [WIDTH / 2, HEIGHT / 2] # Calculate Center Screen
+ball_vel = [2, 1] 
+
+#
+## Keyboard Definition For Two Players (Start FALSE)
+#
+keyup1 = False
+keydown1 = False
+keyup2 = False
+keydown2 = False
+
+#
+## Paddle Definition
+#
+PAD_WIDTH = 8
+PAD_HEIGHT = 80
+PAD1_POS = HEIGHT / 2
+PAD2_POS = HEIGHT / 2
+HALF_PAD_WIDTH = PAD_WIDTH / 2
+HALF_PAD_HEIGHT = PAD_HEIGHT / 2
+paddle_vel = 3
+paddle1_vel = 0
+paddle2_vel = 0
+
+
+#
+## Scoreboard Varaibles
+#
+score_left = 0
+score_right = 0
+cheat_increment = 1
+    
+   
+#       
+## Define The Event Handlers
+#
+
+def letsplay(): # Entry point to reset the game
+    global PAD1_POS, PAD2_POS,HEIGHT, score_left, score_right  
+    # Set scoreboard to all zeroes.
+    score_left = 0
+    score_right = 0
+    # Reset the paddle positions to center screen
+    PAD1_POS = HEIGHT / 2
+    PAD2_POS = HEIGHT / 2
+    # Reset the ball. Be the ball! (Caddyshack...1979)
+    ball_init(ball_vel[0] > 0)
+    
+
+def ball_init(right):
+    global ball_pos, ball_vel
+    global WIDTH
+    global HEIGHT
+
+    ball_pos = [WIDTH / 2, HEIGHT / 2]	# positions ball back to center
+    ball_vel[0] = -random.randrange(120,240) / 100 # Set new ball speed
+    if right == True :
+        ball_vel[0] *= -1
+    ball_vel[1] = -random.randrange(60, 180) / 100 
+    
+    
+def draw(canvas): # Time to draw on the digital canvas.
+    global score_left, score_right, PAD1_POS, PAD2_POS
+    global paddle1_vel,paddle2_vel,ball_pos, ball_vel
+    
+    # Sketch the mid line and gutters in white.
+    canvas.draw_line([WIDTH / 2, 0],[WIDTH / 2, HEIGHT], 1, "White")
+    canvas.draw_line([PAD_WIDTH, 0],[PAD_WIDTH, HEIGHT], 1, "White")
+    canvas.draw_line([WIDTH - PAD_WIDTH, 0],[WIDTH - PAD_WIDTH, HEIGHT], 1, "White")
+    
+    # Draw paddles (regtanglular polygons)
+    canvas.draw_polygon([[0, PAD1_POS], [PAD_WIDTH, PAD1_POS],[PAD_WIDTH, (PAD1_POS) + PAD_HEIGHT ],[0, (PAD1_POS) + PAD_HEIGHT]],1, "white", "White") 
+    canvas.draw_polygon([[WIDTH, PAD2_POS], [WIDTH - PAD_WIDTH, PAD2_POS], [WIDTH - PAD_WIDTH, PAD2_POS + PAD_HEIGHT], [WIDTH, PAD2_POS + PAD_HEIGHT]],1, "white", "White")
+    
+    # Constantly update paddle's vertical position according to play, keep paddle on the screen
+    if (PAD1_POS <= HEIGHT - PAD_HEIGHT and paddle1_vel > 0) or (PAD1_POS >= 0 and paddle1_vel < 0) :
+        PAD1_POS += paddle1_vel    
+    elif (PAD2_POS <= HEIGHT - PAD_HEIGHT and paddle2_vel > 0) or (PAD2_POS >= 0 and paddle2_vel < 0) :
+        PAD2_POS += paddle2_vel   
+        
+    # Draw tenis ball in high optic yellow
+    canvas.draw_circle(ball_pos, BALL_RADIUS, 2, "#ADFF2F", "#ADFF2F")
+    
+    # Update ball
+    ball_pos[0] += ball_vel[0]
+    ball_pos[1] += ball_vel[1]
+    
+    if ball_pos[0] >= WIDTH - BALL_RADIUS - PAD_WIDTH or ball_pos[0] <= BALL_RADIUS + PAD_WIDTH :
+        if PAD1_POS < ball_pos[1] < PAD1_POS + PAD_HEIGHT and ball_vel[0] < 0 : #ball bounce off Paddle1 (PAD1)
+            ball_vel[0] *= -1.1
+            ball_vel[1] *= 1.1
+            
+        elif PAD2_POS < ball_pos[1] < PAD2_POS + PAD_HEIGHT and ball_vel[0] > 0 : #ball bounce off Paddle2 (PAD2)
+            ball_vel[0] *= -1.1
+            ball_vel[1] *= 1.1
+            
+        else :
+            if ball_vel[0] > 0 : #if ball hits right baseline: score 1 point for left side
+                score_left += cheat_increment
+               
+            else :
+                score_right += 1 #if ball hits left baseline: score 1 point for right side
+            ball_init(ball_vel[0] < 0)
+            
+    if ball_pos[1] >= HEIGHT - BALL_RADIUS :   # ball bounce off bottom of screen
+        ball_vel[1] *= -1
+
+    elif ball_pos[1] <= BALL_RADIUS : #ball bounce off top of screen
+        ball_vel[1] *= -1 
+
+    
+    #Draw scores on the digital canvas - High score appears colored aqua.
+    if score_left > score_right:
+        canvas.draw_text(str(score_left), [40, 50], 40, "aqua")
+    else:
+        canvas.draw_text(str(score_left), [40, 50], 40, "white")
+    
+    if score_right > score_left:
+        canvas.draw_text(str(score_right), [WIDTH - 80, 50], 40, "aqua")
+    else:
+        canvas.draw_text(str(score_right), [WIDTH - 80, 50], 40, "white") 
+
+def keydown(key): # Decides what action to take when a key is pressed
+    global paddle1_vel, paddle2_vel, PAD2_POS, PAD1_POS, keydown1, keydown2, keyup1, keyup2
+    global cheat_increment
+    
+    if key == simplegui.KEY_MAP["down"]: # Right side - arrow down pushed
+        keydown2 = True
+        paddle2_vel = paddle_vel    
+    elif key == simplegui.KEY_MAP["up"]: # Right side - arrow up pushed
+        keyup2 = True
+        paddle2_vel = -paddle_vel  
+        
+    if key == simplegui.KEY_MAP["w"]:    # Left side - arrow up pushed
+        keyup1 = True
+        paddle1_vel = -paddle_vel     
+    elif key == simplegui.KEY_MAP["s"]:  # Left side - arrow down pushed
+        keydown1 = True
+        paddle1_vel = paddle_vel
+        
+    if key == simplegui.KEY_MAP["a"]:    # Scott Rixner's cheat key from video - Adds 2 points.
+        cheat_increment = 2				 # Just for fun!
+        paddle1_vel = paddle_vel
+   
+def keyup(key): #decides what action to take when a key is released after being pressed
+    global paddle1_vel, paddle2_vel, keydown1, keydown2, keyup2, keyup1
+    
+    if key == simplegui.KEY_MAP["down"]:
+        if keydown2 == True: 
+            keydown2 = False
+            paddle2_vel = 0
+            
+              
+    elif key == simplegui.KEY_MAP["up"]:
+        if keyup2 == True:
+            keyup2 = False
+            paddle2_vel = 0
+            
+    elif key == simplegui.KEY_MAP["w"]:
+        if keyup1 == True:
+            keyup1 = False
+            paddle1_vel = 0
+    elif key == simplegui.KEY_MAP["s"]:
+        if keydown1 == True: 
+           keyup1 = False
+           paddle1_vel = 0
+
+def doit():
+    frame.start()
+    letsplay()
+    
+# Create SimpleGUI frame
+frame = simplegui.create_frame("Classic Pong", WIDTH, HEIGHT)
+frame.set_draw_handler(draw)
+frame.set_keydown_handler(keydown)
+frame.set_keyup_handler(keyup)
+frame.add_button("Restart", letsplay, 100)
+
+
+# start frame
+letsplay()
+frame.start()
