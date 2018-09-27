@@ -1,0 +1,126 @@
+Rice Python Class - Stopwatch Game
+
+# Rice University - Interactive Python
+# Template for "Stopwatch: The Game"
+# Mini Project #3 - Ron Buning
+
+#
+# Import the required modules
+#
+import simplegui
+import sys
+
+#
+# Define global variables to be passed among fuctions.
+#
+# Booleans
+#
+alto = True
+# Integers
+#
+time_interval = 100
+counter = 0
+halt_count = 0
+times_won = 0
+# Strings
+#
+message = ""
+win_ratio = '0/0'
+
+
+# Define a helper function "format" that converts time
+# in tenths of seconds into formatted string A:BC.D
+
+def format(t):
+    tenth = (t) % 10
+    second = int(t / 10) % 10
+    tens = int(t / 100) % 6
+    minutes = int(t / 600) % 600
+    time_string = str(minutes) + ":" + str(tens) + str(second) + "." + str(tenth)
+    return time_string
+    
+# Define event handlers for buttons; "Start", "Stop", "Reset"
+#
+# Event Handler "Start" is called when the START button is 
+# pushed in the control area.
+
+def start():
+    global counter
+    global alto
+    timer.start()
+    alto = False
+
+# Event Handler "Stop" is called when the STOP button is
+# pushed in the control area and is a test of speed.
+
+def stop():
+    global halt_count
+    global win_ratio
+    global times_won
+    global alto
+    timer.stop()
+    if alto == False :
+        if counter % 10 == 0 and counter != 0 :
+            times_won += 1
+            halt_count += 1
+        elif counter != 0 :
+            halt_count += 1
+    alto = True
+    
+    win_ratio = str(times_won) + "/" + str(halt_count)
+
+    
+# Event Handler "Reset" is called when the RESET button is
+# pressed in the control area and resets the clock.
+
+def reset():
+    global counter
+    global times_won
+    global halt_count
+    counter = -1
+    halt_count = 0
+    times_won = 0
+    tick()
+    stop()
+    
+# Event Handler "Tick" to create a timer with 0.1 sec interval
+#
+def tick():
+    global message
+    global counter
+    counter += 1
+    message = format(counter)
+
+# Draw Handler to draw timer message on canvas
+#
+def draw(canvas):
+    canvas.draw_text(message, [70, 90], 50, "yellow", "monospace")
+    canvas.draw_text(win_ratio, [ 300 - 80, 35 ], 26, "blue", "monospace")
+
+# Handler to process request to quit the game
+#
+def fin():
+    #
+    # Providing a graceful way out of the program.
+    #
+    print "Thank you for playing..."
+    print "Returning control to CodeSkulptor..."
+    exit()
+  
+# Create the frame using SimpleGUI
+#
+frame = simplegui.create_frame("Stopwatch - The Game", 300, 200)
+
+# Register the defined event handlers
+#
+frame.add_button("Start", start, 100)
+frame.add_button("Stop", stop, 100)
+frame.add_button("Reset", reset, 100)
+frame.add_button("Quit Game", fin, 100)
+frame.set_draw_handler(draw)
+timer = simplegui.create_timer(time_interval, tick)
+
+# Start drawing the frame and then reset and start the timer
+# Enter event driven program - main logic follows:
+frame.start()
+reset()
